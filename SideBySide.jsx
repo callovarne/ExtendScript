@@ -16,8 +16,16 @@
         
         var doc0 = app.documents[i],
             doc1 = app.documents[i + 1],
-            newDoc = app.documents.add(6, 4, 501),
+            doc0isLarger = doc0.width.value >= doc1.width.value,
+            smallerDoc = doc0isLarger ? doc1 : doc0,
+            largerDoc = doc0isLarger ? doc0 : doc1,
+            resolution = (doc0isLarger ? doc0.resolution * doc0.width.value : doc1.resolution * doc1.width.value) / 3, // Determine max resolution: ppi = Wp / Wi
+            newDoc = app.documents.add(6, 4, resolution),
             selectRegion;
+            
+        // Resample smaller image
+        app.activeDocument = smallerDoc;
+        smallerDoc.resizeImage(UnitValue(largerDoc.width, "in"), null, null, ResampleMethod.BICUBICSMOOTHER);
         
         // Copy image data from doc0 into new doc at 0,0; transform to 3x4
         app.activeDocument = doc0;
@@ -59,7 +67,7 @@
         jpgSaveOptions.embedColorProfile = true;
         jpgSaveOptions.formatOptions = FormatOptions.STANDARDBASELINE;
         jpgSaveOptions.matte = MatteType.NONE;
-        jpgSaveOptions.quality = 1;
+        jpgSaveOptions.quality = 12;
         try {
             app.activeDocument.saveAs(jpgFile, jpgSaveOptions, true, Extension.LOWERCASE);
         } catch (ex) {
